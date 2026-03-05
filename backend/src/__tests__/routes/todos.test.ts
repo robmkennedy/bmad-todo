@@ -33,9 +33,9 @@ describe('Todo API', () => {
     });
 
     it('returns todos sorted by createdAt descending (newest first)', async () => {
+      // Create todos - ordering is determined by createdAt timestamps
+      // The backend generates timestamps, so we rely on sequential creation
       await request(app).post('/api/todos').send({ text: 'First todo' });
-      // Add a small delay to ensure different timestamps
-      await new Promise((resolve) => setTimeout(resolve, 10));
       await request(app).post('/api/todos').send({ text: 'Second todo' });
 
       const response = await request(app).get('/api/todos');

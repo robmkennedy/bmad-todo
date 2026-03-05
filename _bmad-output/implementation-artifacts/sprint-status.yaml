@@ -1,0 +1,96 @@
+# generated: 2026-03-05
+# project: bmad-todo
+# project_key: NOKEY
+# tracking_system: file-system
+# story_location: _bmad-output/implementation-artifacts
+
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic not yet started
+#   - in-progress: Epic actively being worked on
+#   - done: All stories in epic completed
+#
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - ready-for-dev: Story file created in stories folder
+#   - in-progress: Developer actively working on implementation
+#   - review: Ready for code review (via Dev's code-review workflow)
+#   - done: Story completed
+#
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - done: Retrospective has been completed
+#
+# WORKFLOW NOTES:
+# ===============
+# - Epic transitions to 'in-progress' automatically when first story is created
+# - Stories can be worked in parallel if team capacity allows
+# - SM typically creates next story after previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
+
+generated: 2026-03-05
+project: bmad-todo
+project_key: NOKEY
+tracking_system: file-system
+story_location: _bmad-output/implementation-artifacts
+
+development_status:
+  # Epic 1: Project Foundation
+  epic-1: done
+  1-1-initialize-monorepo-structure: done
+  1-2-configure-backend-express-typescript: done
+  1-3-configure-sqlite-database-drizzle-orm: done
+  1-4-configure-frontend-react-vite-typescript: done
+  1-5-configure-react-query-global-styles: done
+  1-6-configure-root-scripts-shared-types: done
+  epic-1-retrospective: optional
+
+  # Epic 2: Core Task Capture
+  epic-2: in-progress
+  2-1-implement-todo-api-endpoints-get-post: done
+  2-2-implement-zod-validation-schemas: done
+  2-3-implement-taskinput-component: done
+  2-4-implement-todolist-usetodos-hook: backlog
+  2-5-implement-optimistic-add-rollback: backlog
+  epic-2-retrospective: optional
+
+  # Epic 3: Task Completion & Organization
+  epic-3: backlog
+  3-1-implement-patch-api-todos-id-endpoint: backlog
+  3-2-implement-two-section-layout-active-completed: backlog
+  3-3-implement-taskitem-component: backlog
+  3-4-implement-toggle-completion-optimistic-update: backlog
+  3-5-implement-task-animations: backlog
+  epic-3-retrospective: optional
+
+  # Epic 4: Task Deletion
+  epic-4: backlog
+  4-1-implement-delete-api-todos-id-endpoint: backlog
+  4-2-implement-delete-button-taskitem: backlog
+  4-3-implement-delete-animation: backlog
+  epic-4-retrospective: optional
+
+  # Epic 5: UI States & Feedback
+  epic-5: backlog
+  5-1-implement-loadingstate-component: backlog
+  5-2-implement-errorstate-component: backlog
+  5-3-implement-emptystate-component: backlog
+  epic-5-retrospective: optional
+
+  # Epic 6: Dark Mode & Theme Support
+  epic-6: backlog
+  6-1-implement-usetheme-hook: backlog
+  6-2-implement-themetoggle-component: backlog
+  6-3-implement-dark-mode-css-variables: backlog
+  6-4-implement-theme-flash-prevention: backlog
+  epic-6-retrospective: optional
+
+  # Epic 7: Production Readiness
+  epic-7: backlog
+  7-1-implement-health-check-security-middleware: backlog
+  7-2-implement-structured-logging: backlog
+  7-3-configure-production-build-static-serving: backlog
+  7-4-set-up-testing-infrastructure: backlog
+  epic-7-retrospective: optional
+

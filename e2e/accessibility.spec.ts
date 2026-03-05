@@ -1,12 +1,14 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures/base';
 import AxeBuilder from '@axe-core/playwright';
 
 test.describe('Accessibility', () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ page, network }) => {
+    const loadPromise = network.waitForTodosLoad(page);
     await page.goto('/');
+    await loadPromise;
   });
 
-  test('homepage has no accessibility violations', async ({ page }) => {
+  test('homepage has no accessibility violations @p0 @a11y', async ({ page }) => {
     const accessibilityScanResults = await new AxeBuilder({ page })
       .withTags(['wcag2a', 'wcag2aa'])
       .analyze();
@@ -14,11 +16,13 @@ test.describe('Accessibility', () => {
     expect(accessibilityScanResults.violations).toEqual([]);
   });
 
-  test('homepage with tasks has no accessibility violations', async ({ page }) => {
+  test('homepage with tasks has no accessibility violations @p0 @a11y', async ({ page, network }) => {
     // Add a task first
     const input = page.getByRole('textbox', { name: /add.*task/i });
+    const createPromise = network.waitForTodoCreate(page);
     await input.fill('Test task for accessibility');
     await input.press('Enter');
+    await createPromise;
 
     await expect(page.getByText('Test task for accessibility')).toBeVisible();
 
@@ -29,7 +33,7 @@ test.describe('Accessibility', () => {
     expect(accessibilityScanResults.violations).toEqual([]);
   });
 
-  test('keyboard navigation works', async ({ page }) => {
+  test('keyboard navigation works @p0 @a11y', async ({ page }) => {
     // Input should be focused on load
     const input = page.getByRole('textbox', { name: /add.*task/i });
     await expect(input).toBeFocused();
@@ -40,17 +44,19 @@ test.describe('Accessibility', () => {
     await expect(addButton).toBeFocused();
   });
 
-  test('form is keyboard operable', async ({ page }) => {
+  test('form is keyboard operable @p0 @a11y', async ({ page, network }) => {
     const input = page.getByRole('textbox', { name: /add.*task/i });
 
     // Type and submit with keyboard only
+    const createPromise = network.waitForTodoCreate(page);
     await input.fill('Keyboard only task');
     await page.keyboard.press('Enter');
+    await createPromise;
 
     await expect(page.getByText('Keyboard only task')).toBeVisible();
   });
 
-  test('focus is visible on interactive elements', async ({ page }) => {
+  test('focus is visible on interactive elements @p1 @a11y', async ({ page }) => {
     const input = page.getByRole('textbox', { name: /add.*task/i });
 
     // Check input has visible focus styles
@@ -64,7 +70,7 @@ test.describe('Accessibility', () => {
     await expect(addButton).toBeFocused();
   });
 
-  test('touch targets meet minimum size requirements', async ({ page }) => {
+  test('touch targets meet minimum size requirements @p1 @a11y', async ({ page }) => {
     const addButton = page.getByRole('button', { name: /add/i });
     const buttonBox = await addButton.boundingBox();
 
@@ -73,7 +79,7 @@ test.describe('Accessibility', () => {
     expect(buttonBox!.height).toBeGreaterThanOrEqual(44);
   });
 
-  test('input has minimum height for accessibility', async ({ page }) => {
+  test('input has minimum height for accessibility @p1 @a11y', async ({ page }) => {
     const input = page.getByRole('textbox', { name: /add.*task/i });
     const inputBox = await input.boundingBox();
 
