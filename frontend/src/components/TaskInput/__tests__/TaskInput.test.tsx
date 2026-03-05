@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
-// import { render, screen, waitFor } from '@testing-library/react';
-// import userEvent from '@testing-library/user-event';
-// import { TaskInput } from '../TaskInput';
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { TaskInput } from '../TaskInput';
 
 /**
  * TaskInput component tests
@@ -11,81 +11,141 @@ import { describe, it, expect, vi } from 'vitest';
 
 describe('TaskInput Component', () => {
   describe('rendering', () => {
-    it.todo('renders input field');
+    it('renders input field', () => {
+      render(<TaskInput onSubmit={vi.fn()} />);
+      expect(screen.getByRole('textbox')).toBeInTheDocument();
+    });
 
-    it.todo('renders Add button');
+    it('renders Add button', () => {
+      render(<TaskInput onSubmit={vi.fn()} />);
+      expect(screen.getByRole('button', { name: /add/i })).toBeInTheDocument();
+    });
 
-    it.todo('has placeholder text');
+    it('has placeholder text', () => {
+      render(<TaskInput onSubmit={vi.fn()} />);
+      expect(screen.getByPlaceholderText(/what needs to be done/i)).toBeInTheDocument();
+    });
 
-    it.todo('auto-focuses input on mount');
+    it('auto-focuses input on mount', () => {
+      render(<TaskInput onSubmit={vi.fn()} />);
+      expect(screen.getByRole('textbox')).toHaveFocus();
+    });
   });
 
   describe('submission', () => {
-    it.todo('calls onSubmit with text when Enter pressed');
+    it('calls onSubmit with text when Enter pressed', async () => {
+      const onSubmit = vi.fn();
+      render(<TaskInput onSubmit={onSubmit} />);
 
-    it.todo('calls onSubmit when Add button clicked');
+      const input = screen.getByRole('textbox');
+      await userEvent.type(input, 'Buy milk{Enter}');
 
-    it.todo('clears input after successful submission');
+      expect(onSubmit).toHaveBeenCalledWith('Buy milk');
+    });
 
-    it.todo('trims whitespace before submission');
+    it('calls onSubmit when Add button clicked', async () => {
+      const onSubmit = vi.fn();
+      render(<TaskInput onSubmit={onSubmit} />);
 
-    it.todo('retains focus after submission');
+      const input = screen.getByRole('textbox');
+      await userEvent.type(input, 'Buy milk');
+
+      const button = screen.getByRole('button', { name: /add/i });
+      await userEvent.click(button);
+
+      expect(onSubmit).toHaveBeenCalledWith('Buy milk');
+    });
+
+    it('clears input after successful submission', async () => {
+      const onSubmit = vi.fn().mockResolvedValue(undefined);
+      render(<TaskInput onSubmit={onSubmit} />);
+
+      const input = screen.getByRole('textbox');
+      await userEvent.type(input, 'Buy milk{Enter}');
+
+      await waitFor(() => {
+        expect(input).toHaveValue('');
+      });
+    });
+
+    it('trims whitespace before submission', async () => {
+      const onSubmit = vi.fn();
+      render(<TaskInput onSubmit={onSubmit} />);
+
+      const input = screen.getByRole('textbox');
+      await userEvent.type(input, '  Buy milk  {Enter}');
+
+      expect(onSubmit).toHaveBeenCalledWith('Buy milk');
+    });
+
+    it('retains focus after submission', async () => {
+      const onSubmit = vi.fn().mockResolvedValue(undefined);
+      render(<TaskInput onSubmit={onSubmit} />);
+
+      const input = screen.getByRole('textbox');
+      await userEvent.type(input, 'Buy milk{Enter}');
+
+      await waitFor(() => {
+        expect(input).toHaveFocus();
+      });
+    });
   });
 
   describe('validation', () => {
-    it.todo('does not submit empty text');
+    it('does not submit empty text', async () => {
+      const onSubmit = vi.fn();
+      render(<TaskInput onSubmit={onSubmit} />);
 
-    it.todo('does not submit whitespace-only text');
+      const input = screen.getByRole('textbox');
+      await userEvent.type(input, '{Enter}');
 
-    it.todo('shows visual feedback for invalid input');
+      expect(onSubmit).not.toHaveBeenCalled();
+    });
 
-    it.todo('sets aria-invalid when validation fails');
+    it('does not submit whitespace-only text', async () => {
+      const onSubmit = vi.fn();
+      render(<TaskInput onSubmit={onSubmit} />);
+
+      const input = screen.getByRole('textbox');
+      await userEvent.type(input, '   {Enter}');
+
+      expect(onSubmit).not.toHaveBeenCalled();
+    });
+
+    it('shows visual feedback for invalid input', async () => {
+      render(<TaskInput onSubmit={vi.fn()} />);
+
+      const input = screen.getByRole('textbox');
+      await userEvent.type(input, '{Enter}');
+
+      expect(screen.getByRole('alert')).toBeInTheDocument();
+    });
+
+    it('sets aria-invalid when validation fails', async () => {
+      render(<TaskInput onSubmit={vi.fn()} />);
+
+      const input = screen.getByRole('textbox');
+      await userEvent.type(input, '{Enter}');
+
+      expect(input).toHaveAttribute('aria-invalid', 'true');
+    });
   });
 
   describe('loading state', () => {
-    it.todo('disables input during submission');
+    it('disables input during submission', () => {
+      render(<TaskInput onSubmit={vi.fn()} isLoading={true} />);
+      expect(screen.getByRole('textbox')).toBeDisabled();
+    });
 
-    it.todo('disables button during submission');
+    it('disables button during submission', () => {
+      render(<TaskInput onSubmit={vi.fn()} isLoading={true} />);
+      expect(screen.getByRole('button')).toBeDisabled();
+    });
 
-    it.todo('shows loading indicator during submission');
+    it('shows loading indicator during submission', () => {
+      render(<TaskInput onSubmit={vi.fn()} isLoading={true} />);
+      expect(screen.getByRole('button')).toHaveTextContent(/adding/i);
+    });
   });
 });
-
-/**
- * Example implementation (uncomment when component is ready):
- *
- * describe('TaskInput Component', () => {
- *   it('renders input field', () => {
- *     render(<TaskInput onSubmit={vi.fn()} />);
- *
- *     expect(screen.getByRole('textbox')).toBeInTheDocument();
- *   });
- *
- *   it('auto-focuses input on mount', () => {
- *     render(<TaskInput onSubmit={vi.fn()} />);
- *
- *     expect(screen.getByRole('textbox')).toHaveFocus();
- *   });
- *
- *   it('calls onSubmit with text when Enter pressed', async () => {
- *     const onSubmit = vi.fn();
- *     render(<TaskInput onSubmit={onSubmit} />);
- *
- *     const input = screen.getByRole('textbox');
- *     await userEvent.type(input, 'Buy milk{Enter}');
- *
- *     expect(onSubmit).toHaveBeenCalledWith('Buy milk');
- *   });
- *
- *   it('does not submit empty text', async () => {
- *     const onSubmit = vi.fn();
- *     render(<TaskInput onSubmit={onSubmit} />);
- *
- *     const input = screen.getByRole('textbox');
- *     await userEvent.type(input, '{Enter}');
- *
- *     expect(onSubmit).not.toHaveBeenCalled();
- *   });
- * });
- */
 

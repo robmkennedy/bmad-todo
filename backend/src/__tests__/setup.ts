@@ -1,4 +1,6 @@
 import { beforeAll, afterAll, afterEach } from 'vitest';
+import { sql } from 'drizzle-orm';
+import { db, schema } from '../db/index.js';
 
 /**
  * Backend test setup
@@ -9,7 +11,6 @@ import { beforeAll, afterAll, afterEach } from 'vitest';
 
 // Set test environment
 process.env.NODE_ENV = 'test';
-process.env.DATABASE_URL = ':memory:';
 
 // Global test timeout
 // vi.setConfig({ testTimeout: 10000 });
@@ -17,6 +18,16 @@ process.env.DATABASE_URL = ':memory:';
 beforeAll(async () => {
   // Setup code that runs once before all tests
   console.log('🧪 Starting backend test suite...');
+
+  // Ensure the todos table exists for testing
+  db.run(sql`
+    CREATE TABLE IF NOT EXISTS todos (
+      id TEXT PRIMARY KEY,
+      text TEXT NOT NULL,
+      completed INTEGER NOT NULL DEFAULT false,
+      created_at TEXT NOT NULL
+    )
+  `);
 });
 
 afterAll(async () => {
@@ -27,5 +38,8 @@ afterAll(async () => {
 afterEach(async () => {
   // Reset any mocks after each test
   // vi.restoreAllMocks();
+
+  // Clear todos table between tests
+  await db.delete(schema.todos);
 });
 

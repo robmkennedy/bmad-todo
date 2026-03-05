@@ -5,7 +5,13 @@ import { desc } from 'drizzle-orm';
 
 /**
  * Validation schema for creating a todo
- * (Mirrors shared/schemas/todo.ts - using inline to avoid build complexity)
+ *
+ * NOTE: This mirrors shared/schemas/todo.ts. We inline it here because:
+ * 1. The shared package needs to be built before it can be imported
+ * 2. For Sprint 1, we prioritize working code over perfect DRY
+ *
+ * TODO: In a future sprint, set up proper workspace imports or
+ * build the shared package as part of the dev workflow.
  */
 const createTodoSchema = z.object({
   text: z

@@ -1,6 +1,6 @@
-import { describe, it, expect } from 'vitest';
-// import { render, screen } from '@testing-library/react';
-// import App from '../App';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, waitFor, act } from '@testing-library/react';
+import { App } from '../App';
 
 /**
  * App component tests
@@ -8,44 +8,59 @@ import { describe, it, expect } from 'vitest';
  * These tests verify the root App component renders correctly.
  */
 
-describe('App Component', () => {
-  it.todo('renders without crashing');
+// Store original fetch
+const originalFetch = global.fetch;
 
-  it.todo('renders main landmark');
-
-  it.todo('renders TaskInput component');
-
-  it.todo('renders todo list');
+beforeEach(() => {
+  // Mock fetch for API calls
+  global.fetch = vi.fn().mockResolvedValue({
+    ok: true,
+    json: () => Promise.resolve([]),
+  });
 });
 
-/**
- * Example implementation (uncomment when component is ready):
- *
- * import { render, screen } from '@testing-library/react';
- * import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
- * import App from '../App';
- *
- * const renderApp = () => {
- *   const queryClient = new QueryClient({
- *     defaultOptions: { queries: { retry: false } },
- *   });
- *   return render(
- *     <QueryClientProvider client={queryClient}>
- *       <App />
- *     </QueryClientProvider>
- *   );
- * };
- *
- * describe('App Component', () => {
- *   it('renders without crashing', () => {
- *     renderApp();
- *     expect(document.body).toBeTruthy();
- *   });
- *
- *   it('renders main landmark', () => {
- *     renderApp();
- *     expect(screen.getByRole('main')).toBeInTheDocument();
- *   });
- * });
- */
+afterEach(() => {
+  // Restore original fetch
+  global.fetch = originalFetch;
+});
+
+describe('App Component', () => {
+  it('renders without crashing', async () => {
+    await act(async () => {
+      render(<App />);
+    });
+    expect(document.body).toBeTruthy();
+  });
+
+  it('renders main landmark', async () => {
+    await act(async () => {
+      render(<App />);
+    });
+    expect(screen.getByRole('main')).toBeInTheDocument();
+  });
+
+  it('renders TaskInput component', async () => {
+    await act(async () => {
+      render(<App />);
+    });
+    expect(screen.getByRole('textbox')).toBeInTheDocument();
+  });
+
+  it('renders header with app title', async () => {
+    await act(async () => {
+      render(<App />);
+    });
+    expect(screen.getByRole('heading', { name: /bmad todo/i })).toBeInTheDocument();
+  });
+
+  it('shows empty state message when no todos', async () => {
+    await act(async () => {
+      render(<App />);
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText(/no tasks yet/i)).toBeInTheDocument();
+    });
+  });
+});
 
