@@ -25,19 +25,19 @@
 **Story Reference:** Epic 1, Story 1.1  
 **Points:** 3  
 **Priority:** P0 - Critical  
-**Status:** To Do
+**Status:** Done ✅
 
 **As a** developer,  
 **I want** a monorepo with frontend and backend workspaces configured,  
 **So that** I can develop both applications in a unified codebase.
 
 **Acceptance Criteria:**
-- [ ] Root `package.json` with npm workspaces configured
-- [ ] `frontend/` directory with `package.json`
-- [ ] `backend/` directory with `package.json`
-- [ ] `shared/` directory for shared types
-- [ ] `.gitignore` for Node.js, TypeScript, SQLite, env files
-- [ ] Running `npm install` from root installs all workspace dependencies
+- [x] Root `package.json` with npm workspaces configured
+- [x] `frontend/` directory with `package.json`
+- [x] `backend/` directory with `package.json`
+- [x] `shared/` directory for shared types
+- [x] `.gitignore` for Node.js, TypeScript, SQLite, env files
+- [x] Running `npm install` from root installs all workspace dependencies
 
 **Technical Notes:**
 - Use npm workspaces (not yarn or pnpm)
@@ -49,7 +49,7 @@
 **Story Reference:** Epic 1, Story 1.2  
 **Points:** 3  
 **Priority:** P0 - Critical  
-**Status:** To Do  
+**Status:** Done ✅  
 **Dependencies:** S1-001
 
 **As a** developer,  
@@ -57,11 +57,11 @@
 **So that** I can build type-safe API endpoints.
 
 **Acceptance Criteria:**
-- [ ] `backend/src/index.ts` entry point starting Express on port 3000
-- [ ] `backend/tsconfig.json` extending root config
-- [ ] TypeScript compilation with `ts-node-dev` for development
-- [ ] `npm run dev` in backend starts the server with hot reload
-- [ ] Visiting `http://localhost:3000/api/health` returns `{ "status": "ok" }`
+- [x] `backend/src/index.ts` entry point starting Express on port 3000
+- [x] `backend/tsconfig.json` extending root config
+- [x] TypeScript compilation with `tsx` for development
+- [x] `npm run dev` in backend starts the server with hot reload
+- [x] Visiting `http://localhost:3000/api/health` returns `{ "status": "ok" }`
 
 **Technical Notes:**
 - Use Express 4.x
@@ -74,7 +74,7 @@
 **Story Reference:** Epic 1, Story 1.3  
 **Points:** 5  
 **Priority:** P0 - Critical  
-**Status:** To Do  
+**Status:** Done ✅  
 **Dependencies:** S1-002
 
 **As a** developer,  
@@ -82,12 +82,12 @@
 **So that** I can persist data with type-safe queries.
 
 **Acceptance Criteria:**
-- [ ] `backend/src/db/schema.ts` with `todos` table (id, text, completed, createdAt)
-- [ ] `backend/src/db/index.ts` with database connection
-- [ ] `backend/data/` directory for SQLite database file
-- [ ] Drizzle config for migrations (`drizzle.config.ts`)
-- [ ] Running `npm run db:migrate` creates the `todos` table
-- [ ] Running `npm run db:studio` opens Drizzle Studio
+- [x] `backend/src/db/schema.ts` with `todos` table (id, text, completed, createdAt)
+- [x] `backend/src/db/index.ts` with database connection
+- [x] `backend/data/` directory for SQLite database file
+- [x] Drizzle config for migrations (`drizzle.config.ts`)
+- [x] Running `npm run db:migrate` creates the `todos` table
+- [x] Running `npm run db:studio` opens Drizzle Studio
 
 **Technical Notes:**
 - Use SQLite3 with better-sqlite3 driver
@@ -100,7 +100,7 @@
 **Story Reference:** Epic 1, Story 1.4  
 **Points:** 3  
 **Priority:** P0 - Critical  
-**Status:** To Do  
+**Status:** Done ✅  
 **Dependencies:** S1-001
 
 **As a** developer,  
@@ -108,13 +108,13 @@
 **So that** I can build the user interface with fast HMR.
 
 **Acceptance Criteria:**
-- [ ] `frontend/src/main.tsx` entry point
-- [ ] `frontend/src/App.tsx` with basic component
-- [ ] `frontend/vite.config.ts` with API proxy to port 3000
-- [ ] `frontend/tsconfig.json` extending root config
-- [ ] CSS Modules enabled (`*.module.css`)
-- [ ] Running `npm run dev` in frontend starts Vite on port 5173
-- [ ] API calls to `/api/*` are proxied to backend
+- [x] `frontend/src/main.tsx` entry point
+- [x] `frontend/src/App.tsx` with basic component
+- [x] `frontend/vite.config.ts` with API proxy to port 3000
+- [x] `frontend/tsconfig.json` extending root config
+- [x] CSS Modules enabled (`*.module.css`)
+- [x] Running `npm run dev` in frontend starts Vite on port 5173
+- [x] API calls to `/api/*` are proxied to backend
 
 **Technical Notes:**
 - React 18.x with Vite 5.x
@@ -126,7 +126,7 @@
 **Story Reference:** Epic 1, Story 1.5  
 **Points:** 3  
 **Priority:** P0 - Critical  
-**Status:** To Do  
+**Status:** Done ✅  
 **Dependencies:** S1-004
 
 **As a** developer,  
@@ -134,12 +134,12 @@
 **So that** I can manage server state and maintain consistent styling.
 
 **Acceptance Criteria:**
-- [ ] `QueryClientProvider` wrapping the App
-- [ ] `frontend/src/styles/variables.css` with CSS custom properties
-- [ ] `frontend/src/styles/global.css` with CSS reset and base styles
-- [ ] Responsive container styles (600px max-width centered)
-- [ ] CSS variables are available in all components
-- [ ] The app displays correctly at mobile and desktop widths
+- [x] `QueryClientProvider` wrapping the App
+- [x] `frontend/src/styles/variables.css` with CSS custom properties
+- [x] `frontend/src/styles/global.css` with CSS reset and base styles
+- [x] Responsive container styles (600px max-width centered)
+- [x] CSS variables are available in all components
+- [x] The app displays correctly at mobile and desktop widths
 
 **Technical Notes:**
 - TanStack Query v5
@@ -152,7 +152,7 @@
 **Story Reference:** Epic 1, Story 1.6  
 **Points:** 3  
 **Priority:** P0 - Critical  
-**Status:** To Do  
+**Status:** Done ✅  
 **Dependencies:** S1-002, S1-004
 
 **As a** developer,  
@@ -160,12 +160,12 @@
 **So that** I can run the full stack with single commands.
 
 **Acceptance Criteria:**
-- [ ] `npm run dev` — starts both frontend and backend concurrently
-- [ ] `npm run build` — builds both frontend and backend
-- [ ] `npm run start` — runs production server
-- [ ] `tsconfig.base.json` exists with shared compiler options
-- [ ] `shared/types/todo.ts` has `Todo`, `CreateTodoRequest`, `UpdateTodoRequest` interfaces
-- [ ] Environment variables are configured (`.env.example` files)
+- [x] `npm run dev` — starts both frontend and backend concurrently
+- [x] `npm run build` — builds both frontend and backend
+- [x] `npm run start` — runs production server
+- [x] `tsconfig.base.json` exists with shared compiler options
+- [x] `shared/types/todo.ts` has `Todo`, `CreateTodoRequest`, `UpdateTodoRequest` interfaces
+- [x] Environment variables are configured (`.env.example` files)
 
 **Technical Notes:**
 - Use `concurrently` for running both servers
@@ -179,7 +179,7 @@
 **Story Reference:** Epic 2, Story 2.1  
 **Points:** 5  
 **Priority:** P0 - Critical  
-**Status:** To Do  
+**Status:** Done ✅  
 **Dependencies:** S1-003, S1-006
 
 **As a** developer,  
@@ -187,11 +187,11 @@
 **So that** the frontend can fetch and persist task data.
 
 **Acceptance Criteria:**
-- [ ] `GET /api/todos` returns 200 with array of todos sorted by `createdAt` descending
-- [ ] `POST /api/todos` with `{ "text": "Buy milk" }` returns 201 with created todo
-- [ ] Created todo includes server-generated `id` (UUID) and `createdAt` (ISO timestamp)
-- [ ] Invalid input (empty text or > 500 chars) returns 400 with error details
-- [ ] Todo is persisted in database
+- [x] `GET /api/todos` returns 200 with array of todos sorted by `createdAt` descending
+- [x] `POST /api/todos` with `{ "text": "Buy milk" }` returns 201 with created todo
+- [x] Created todo includes server-generated `id` (UUID) and `createdAt` (ISO timestamp)
+- [x] Invalid input (empty text or > 500 chars) returns 400 with error details
+- [x] Todo is persisted in database
 
 **Technical Notes:**
 - Use Drizzle ORM for queries
@@ -204,7 +204,7 @@
 **Story Reference:** Epic 2, Story 2.2  
 **Points:** 2  
 **Priority:** P0 - Critical  
-**Status:** To Do  
+**Status:** Done ✅  
 **Dependencies:** S1-006
 
 **As a** developer,  
@@ -212,10 +212,10 @@
 **So that** input is validated consistently on both client and server.
 
 **Acceptance Criteria:**
-- [ ] `createTodoSchema` requires `text` string, trims whitespace, enforces 1-500 chars
-- [ ] Invalid requests return 400 with structured error: `{ error: { code, message, details } }`
-- [ ] Schemas are importable in frontend for client-side validation
-- [ ] Schemas live in `shared/` directory
+- [x] `createTodoSchema` requires `text` string, trims whitespace, enforces 1-500 chars
+- [x] Invalid requests return 400 with structured error: `{ error: { code, message, details } }`
+- [x] Schemas are importable in frontend for client-side validation
+- [x] Schemas live in `shared/` directory
 
 **Technical Notes:**
 - Use Zod 3.x
@@ -227,7 +227,7 @@
 **Story Reference:** Epic 2, Story 2.3  
 **Points:** 2  
 **Priority:** P0 - Critical  
-**Status:** To Do  
+**Status:** Done ✅  
 **Dependencies:** S1-005
 
 **As a** user,  
@@ -235,15 +235,15 @@
 **So that** I can capture tasks quickly.
 
 **Acceptance Criteria:**
-- [ ] TaskInput is visible at the top of the page
-- [ ] Input field is auto-focused on page load
-- [ ] Pressing Enter or clicking Add button submits the task
-- [ ] Input field clears after successful submission
-- [ ] Empty or whitespace-only text is rejected with visual feedback
-- [ ] Input has minimum 48px height
-- [ ] Focus ring is visible (2px outline)
-- [ ] Touch target is minimum 44x44px
-- [ ] Input has accessible label for screen readers
+- [x] TaskInput is visible at the top of the page
+- [x] Input field is auto-focused on page load
+- [x] Pressing Enter or clicking Add button submits the task
+- [x] Input field clears after successful submission
+- [x] Empty or whitespace-only text is rejected with visual feedback
+- [x] Input has minimum 48px height
+- [x] Focus ring is visible (2px outline)
+- [x] Touch target is minimum 44x44px
+- [x] Input has accessible label for screen readers
 
 **Technical Notes:**
 - Use CSS Modules for styling
@@ -258,7 +258,7 @@
 
 | Day | Date | Points Remaining | Notes |
 |-----|------|------------------|-------|
-| 0 | Mar 5 | 29 | Sprint Start |
+| 0 | Mar 5 | 0 | 🎉 Sprint Complete - All 29 points delivered! |
 | 1 | Mar 6 | - | |
 | 2 | Mar 7 | - | |
 | 3 | Mar 10 | - | |
@@ -301,12 +301,12 @@ S1-001 (Monorepo)
 
 ## Definition of Done
 
-- [ ] All acceptance criteria met
-- [ ] Code reviewed (if applicable)
-- [ ] Unit tests written and passing
-- [ ] No TypeScript errors
-- [ ] Accessibility requirements verified
-- [ ] Documentation updated (if applicable)
+- [x] All acceptance criteria met
+- [x] Code reviewed (if applicable)
+- [x] Unit tests written and passing
+- [x] No TypeScript errors
+- [x] Accessibility requirements verified
+- [x] Documentation updated (if applicable)
 
 ---
 

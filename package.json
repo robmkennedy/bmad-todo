@@ -1,0 +1,33 @@
+{
+  "name": "bmad-todo",
+  "version": "1.0.0",
+  "description": "A simple, reliable todo application built with the BMAD method",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend",
+    "shared"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev -w backend\" \"npm run dev -w frontend\"",
+    "build": "npm run build -w shared && npm run build -w backend && npm run build -w frontend",
+    "start": "npm run start -w backend",
+    "test": "vitest",
+    "test:frontend": "npm run test -w frontend",
+    "test:backend": "npm run test -w backend",
+    "test:shared": "npm run test -w shared",
+    "test:e2e": "playwright test",
+    "lint": "eslint . --ext .ts,.tsx",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "concurrently": "^8.2.2",
+    "typescript": "^5.3.3",
+    "vitest": "^1.2.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
+

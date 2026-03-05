@@ -1,0 +1,4 @@
+# This directory contains the SQLite database file
+# The .gitkeep ensures the directory is tracked by git
+# Database files (*.db) are ignored via .gitignore
+
