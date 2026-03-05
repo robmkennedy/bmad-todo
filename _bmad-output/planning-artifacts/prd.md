@@ -2,8 +2,8 @@
 
 ## BMad Todo Application
 
-**Version:** 1.0
-**Date:** March 4, 2026
+**Version:** 1.1
+**Date:** March 5, 2026
 **Author:** John (Product Manager)
 **Status:** Approved
 
@@ -55,14 +55,18 @@ Individual users who need a straightforward way to track personal tasks without 
 #### US-1: View Todo List
 
 **As a** user
-**I want to** see all my todos immediately when I open the application
-**So that** I can quickly assess what tasks I have
+**I want to** see all my todos organized into separate sections for incomplete and completed tasks
+**So that** I can quickly focus on what needs to be done while still seeing what I've accomplished
 
 **Acceptance Criteria:**
 - The todo list loads and displays automatically on application open
-- Active (incomplete) todos are clearly visible
-- Completed todos are visually distinguishable from active ones (e.g., strikethrough, muted color)
-- An appropriate empty state is shown when no todos exist
+- Todos are displayed in two distinct sections:
+  - **Active section** — Shows incomplete todos (displayed first/prominently)
+  - **Completed section** — Shows completed todos (displayed below active section)
+- Each section has a clear heading label (e.g., "Tasks", "Completed")
+- Active todos are clearly visible and prominent
+- Completed todos are visually muted (e.g., strikethrough, lighter color)
+- Empty states are shown per section when applicable (e.g., "No tasks yet" or "No completed tasks")
 - A loading state is shown while data is being fetched
 - An error state is shown if the data fails to load
 
@@ -89,9 +93,10 @@ Individual users who need a straightforward way to track personal tasks without 
 **Acceptance Criteria:**
 - Each todo has a clickable checkbox or toggle to mark it complete
 - Toggling completion updates the visual state immediately
+- When marked complete, the todo moves from the Active section to the Completed section
 - Completed todos are visually distinct (e.g., strikethrough text, muted styling)
 - The completion state is persisted to the backend
-- A completed todo can be toggled back to incomplete
+- A completed todo can be toggled back to incomplete (moves back to Active section)
 
 #### US-4: Delete a Todo
 
@@ -104,6 +109,23 @@ Individual users who need a straightforward way to track personal tasks without 
 - Deleting a todo removes it from the list immediately
 - The deletion is persisted to the backend
 - Deleted todos cannot be recovered (v1.0 — no undo)
+
+#### US-5: Toggle Dark Mode
+
+**As a** user
+**I want to** switch between light and dark color themes
+**So that** I can use the application comfortably in different lighting conditions and according to my personal preference
+
+**Acceptance Criteria:**
+- A theme toggle control is visible in the application header/UI
+- Clicking the toggle switches between light mode and dark mode instantly
+- The selected theme preference is persisted in the browser (localStorage)
+- On initial load, the application respects the user's saved preference
+- If no saved preference exists, the application respects the system preference (`prefers-color-scheme`)
+- All UI elements (backgrounds, text, borders, buttons, inputs) adapt appropriately to the selected theme
+- Color contrast requirements (WCAG 2.1 AA — 4.5:1 minimum) are maintained in both themes
+- The theme toggle has an accessible label for screen readers
+- Theme transition is smooth (no jarring flash)
 
 ### 3.2 Implied Requirements
 
@@ -164,7 +186,8 @@ Each todo item consists of:
 | State | Behavior |
 |-------|----------|
 | **Loading** | Show a loading indicator while fetching todos |
-| **Empty** | Display a friendly message when no todos exist (e.g., "No tasks yet — add one above!") |
+| **Empty (Active section)** | Display a friendly message when no active todos exist (e.g., "No tasks yet — add one above!") |
+| **Empty (Completed section)** | Display a subtle message when no completed todos exist (e.g., "No completed tasks") or hide section entirely |
 | **Error** | Display an error message with option to retry if fetch fails |
 | **Optimistic Updates** | Reflect add/complete/delete actions immediately in the UI, rolling back on failure |
 
@@ -225,13 +248,20 @@ Each todo item consists of:
 5. Input field clears
 
 #### Complete a Todo
-1. User clicks checkbox/toggle next to a todo
+1. User clicks checkbox/toggle next to a todo in the Active section
 2. Todo immediately shows completed styling (strikethrough, muted)
-3. Todo remains in list in its current position
+3. Todo moves from Active section to Completed section
+4. Unchecking a completed todo moves it back to Active section
 
 #### Delete a Todo
 1. User clicks delete button/icon on a todo
 2. Todo is removed from list immediately
+
+#### Toggle Theme
+1. User clicks the theme toggle in the header
+2. Theme switches instantly (light ↔ dark)
+3. Preference is saved to localStorage
+4. On next visit, saved preference is applied automatically
 
 ### 6.3 Responsive Behavior
 
@@ -305,7 +335,7 @@ These may be considered for future versions based on user feedback and product d
 |---|----------|--------|
 | 1 | What specific tech stack should be used for frontend and backend? | ✅ Resolved — Architect to decide based on PRD requirements |
 | 2 | Should todos have a maximum text length? | ✅ Resolved — **500 characters max** |
-| 3 | Should completed todos sort differently (e.g., move to bottom)? | ✅ Resolved — **Keep in place** (no auto-sort in v1.0) |
+| 3 | Should completed todos be displayed separately? | ✅ Resolved — **Separate sections** (Active/Completed) |
 | 4 | What database should be used? | ✅ Resolved — Architect to decide based on PRD requirements |
 
 ### 10.1 Resolved Decisions
@@ -315,10 +345,11 @@ These may be considered for future versions based on user feedback and product d
 - Validation: Enforce on both client (input maxlength) and server (reject if exceeded)
 - UX: Show character count when approaching limit (e.g., after 400 chars)
 
-**Q3: Completed todo sort behavior — Keep in place**
-- Rationale: Predictable behavior; users know where their todos are
-- Completed todos remain in their original position in the list
-- Future consideration: Could add filter tabs (All / Active / Completed) in v2
+**Q3: Completed todo organization — Separate sections**
+- Rationale: Clear visual separation helps users focus on active work while preserving completion history
+- Active todos displayed in top section; completed todos in bottom section
+- Todos move between sections when completion status changes
+- Within each section, todos maintain creation order (newest first)
 
 ---
 
@@ -328,4 +359,6 @@ These may be considered for future versions based on user feedback and product d
 |---------|------|--------|---------|
 | 1.0-draft | March 4, 2026 | John (PM) | Initial PRD based on stakeholder input |
 | 1.0 | March 4, 2026 | John (PM) | Resolved open questions; approved for architecture |
+| 1.1 | March 5, 2026 | John (PM) | Formalized two-section design (Active/Completed); added explicit section headings, empty states per section, loading state, and error state requirements; updated UI component specifications |
+| 1.2 | March 5, 2026 | John (PM) | Added dark mode feature (US-5): theme toggle, localStorage persistence, system preference detection; added Adaptability design principle; added Toggle Theme UX flow |
 

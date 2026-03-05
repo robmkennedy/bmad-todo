@@ -1,21 +1,22 @@
 ---
 stepsCompleted: [1, 2, 3, 4, 5, 6, 7, 8]
-inputDocuments: ['prd.md']
+inputDocuments: ['prd.md', 'ux-architecture-handoff.md']
 workflowType: 'architecture'
 project_name: 'bmad-todo'
 user_name: 'Rob'
-date: '2026-03-04'
+date: '2026-03-05'
 ---
 
 # Architecture Document
 
 ## BMad Todo Application
 
-**Version:** 1.0  
-**Date:** March 4, 2026  
+**Version:** 1.3  
+**Date:** March 5, 2026  
 **Author:** Winston (Architect)  
 **Status:** Approved  
-**PRD Reference:** prd.md v1.0
+**PRD Reference:** prd.md v1.2  
+**UX Reference:** ux-architecture-handoff.md v1.0, wireframes.md v1.2
 
 ---
 
@@ -29,6 +30,17 @@ This document defines the technical architecture for BMad Todo — a single-user
 - **Convention over configuration** — Leverage framework defaults where sensible
 - **Monorepo simplicity** — Single repository with clear frontend/backend separation
 - **Production-ready from day one** — No throwaway prototyping; every component is deployable
+
+### 1.2 UX Handoff Questions Addressed
+
+| # | Question | Decision | Rationale |
+|---|----------|----------|-----------|
+| 1 | Frontend framework recommendation? | **React 18 + Vite + TypeScript** | Component model matches wireframe structure; React Query handles optimistic UI elegantly |
+| 2 | State management approach? | **React Query (server state) + useState (local)** | Built-in optimistic updates, caching, and rollback support |
+| 3 | Animation library? | **CSS Transitions (no library)** | Zero runtime overhead; native `prefers-reduced-motion` support via CSS variables; sufficient for simple animations |
+| 4 | Database choice? | **SQLite + Drizzle ORM** | Zero-config, file-based, perfect for single-user; easy migration path to PostgreSQL |
+| 5 | Deployment strategy? | **Single unit (recommended for v1.0)** | Express serves both API and static frontend build; simplifies deployment |
+| 6 | Theme implementation approach? | **CSS custom properties + data attribute** | CSS variables for colors, `data-theme` attribute on root, localStorage persistence; no runtime library needed |
 
 ---
 
@@ -161,12 +173,30 @@ bmad-todo/
 │   │   │   ├── TodoList/
 │   │   │   │   ├── TodoList.tsx
 │   │   │   │   └── TodoList.module.css
+│   │   │   ├── TaskSection/
+│   │   │   │   ├── TaskSection.tsx
+│   │   │   │   └── TaskSection.module.css
+│   │   │   ├── SectionHeader/
+│   │   │   │   ├── SectionHeader.tsx
+│   │   │   │   └── SectionHeader.module.css
 │   │   │   ├── TodoItem/
 │   │   │   │   ├── TodoItem.tsx
 │   │   │   │   └── TodoItem.module.css
 │   │   │   ├── TodoInput/
 │   │   │   │   ├── TodoInput.tsx
 │   │   │   │   └── TodoInput.module.css
+│   │   │   ├── EmptyState/
+│   │   │   │   ├── EmptyState.tsx
+│   │   │   │   └── EmptyState.module.css
+│   │   │   ├── LoadingState/
+│   │   │   │   ├── LoadingState.tsx
+│   │   │   │   └── LoadingState.module.css
+│   │   │   ├── ErrorState/
+│   │   │   │   ├── ErrorState.tsx
+│   │   │   │   └── ErrorState.module.css
+│   │   │   ├── ThemeToggle/
+│   │   │   │   ├── ThemeToggle.tsx
+│   │   │   │   └── ThemeToggle.module.css
 │   │   │   └── ui/              # Generic UI components
 │   │   │       ├── Button/
 │   │   │       │   ├── Button.tsx
@@ -181,7 +211,8 @@ bmad-todo/
 │   │   │           ├── Spinner.tsx
 │   │   │           └── Spinner.module.css
 │   │   ├── hooks/               # Custom React hooks
-│   │   │   └── useTodos.ts      # React Query hooks for todos
+│   │   │   ├── useTodos.ts      # React Query hooks for todos
+│   │   │   └── useTheme.ts      # Theme detection and persistence
 │   │   ├── api/                 # API client functions
 │   │   │   └── todos.ts
 │   │   ├── types/               # TypeScript types (shared)
@@ -356,19 +387,36 @@ interface ApiError {
 
 ```
 App
-├── Header (optional - app title)
+├── Header
+│   ├── App title ("📝 BMad Todo")
+│   └── ThemeToggle (sun/moon icon, toggles light/dark mode)
 ├── TodoInput
 │   └── Input field + Add button
 ├── TodoList
-│   ├── LoadingState
-│   ├── ErrorState
-│   ├── EmptyState
-│   └── TodoItem[]
-│       ├── Checkbox (toggle complete)
-│       ├── Text display
-│       └── Delete button
+│   ├── LoadingState (shown while fetching)
+│   ├── ErrorState (shown on fetch failure)
+│   ├── EmptyState (shown when no tasks exist at all)
+│   ├── TaskSection (Active — "Tasks")
+│   │   ├── SectionHeader ("Tasks")
+│   │   ├── EmptyState (section-specific: "No tasks yet!")
+│   │   └── TodoItem[] (incomplete tasks, newest first)
+│   │       ├── Checkbox (toggle complete)
+│   │       ├── Text display
+│   │       └── Delete button
+│   └── TaskSection (Completed — hidden if empty)
+│       ├── SectionHeader ("Completed")
+│       └── TodoItem[] (completed tasks, newest first)
+│           ├── Checkbox (toggle incomplete)
+│           ├── Text display (strikethrough, muted)
+│           └── Delete button
 └── Footer (optional - todo count)
 ```
+
+**Section Behavior:**
+- Active section always visible (shows empty state if no active tasks)
+- Completed section hidden entirely when no completed tasks exist
+- When a task is completed, it animates from Active → Completed section
+- When a task is uncompleted, it animates from Completed → Active section
 
 ### 6.2 State Management Strategy
 
@@ -380,13 +428,135 @@ App
 **Local State (React useState):**
 - Form input values
 - UI state (e.g., loading indicators during mutations)
+- Theme preference (light/dark, persisted to localStorage)
 
-### 6.3 React Query Configuration
+### 6.3 Theme Implementation
+
+**Architecture Decision:** Use CSS custom properties with a `data-theme` attribute on the root element. Theme state is client-only (no server persistence needed).
+
+**Theme Detection Priority:**
+1. User preference saved in localStorage
+2. System preference via `prefers-color-scheme` media query
+3. Default to light mode
+
+**useTheme Hook:**
+
+```typescript
+// frontend/src/hooks/useTheme.ts
+import { useState, useEffect } from 'react';
+
+type Theme = 'light' | 'dark';
+
+export function useTheme() {
+  const [theme, setTheme] = useState<Theme>(() => {
+    // 1. Check localStorage
+    const saved = localStorage.getItem('theme') as Theme | null;
+    if (saved === 'light' || saved === 'dark') return saved;
+    
+    // 2. Check system preference
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      return 'dark';
+    }
+    
+    // 3. Default to light
+    return 'light';
+  });
+
+  useEffect(() => {
+    // Apply theme to document
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  // Listen for system preference changes (only if no user preference)
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = (e: MediaQueryListEvent) => {
+      if (!localStorage.getItem('theme')) {
+        setTheme(e.matches ? 'dark' : 'light');
+      }
+    };
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
+
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
+  };
+
+  return { theme, toggleTheme };
+}
+```
+
+**ThemeToggle Component:**
+
+```tsx
+// frontend/src/components/ThemeToggle/ThemeToggle.tsx
+import styles from './ThemeToggle.module.css';
+import { useTheme } from '../../hooks/useTheme';
+
+export function ThemeToggle() {
+  const { theme, toggleTheme } = useTheme();
+  
+  return (
+    <button
+      onClick={toggleTheme}
+      className={styles.toggle}
+      aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+    >
+      {theme === 'light' ? '☀️' : '🌙'}
+    </button>
+  );
+}
+```
+
+```css
+/* frontend/src/components/ThemeToggle/ThemeToggle.module.css */
+.toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--touch-target-min);
+  height: var(--touch-target-min);
+  background: transparent;
+  border: none;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  font-size: 1.25rem;
+  transition: background-color 200ms ease-in-out;
+}
+
+.toggle:hover {
+  background-color: var(--color-surface);
+}
+
+.toggle:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+```
+
+**Flash Prevention (index.html):**
+
+```html
+<!-- In <head> before stylesheets to prevent flash of wrong theme -->
+<script>
+  (function() {
+    const saved = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const theme = saved || (prefersDark ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', theme);
+  })();
+</script>
+```
+
+### 6.4 React Query Configuration
 
 ```typescript
 // frontend/src/hooks/useTodos.ts
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import * as todosApi from '../api/todos';
+import type { Todo } from '../types/todo';
 
 export function useTodos() {
   return useQuery({
@@ -395,13 +565,27 @@ export function useTodos() {
   });
 }
 
+// Derived data: split todos into active and completed sections
+export function useTodoSections() {
+  const { data: todos = [], ...rest } = useTodos();
+  
+  const activeTodos = todos.filter((todo: Todo) => !todo.completed);
+  const completedTodos = todos.filter((todo: Todo) => todo.completed);
+  
+  return {
+    activeTodos,
+    completedTodos,
+    ...rest,
+  };
+}
+
 export function useCreateTodo() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: todosApi.createTodo,
     onMutate: async (newTodo) => {
-      // Optimistic update
+      // Optimistic update — new task appears at top of Active section
       await queryClient.cancelQueries({ queryKey: ['todos'] });
       const previous = queryClient.getQueryData(['todos']);
       queryClient.setQueryData(['todos'], (old: Todo[]) => [
@@ -419,9 +603,35 @@ export function useCreateTodo() {
     },
   });
 }
+
+export function useToggleTodo() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, completed }: { id: string; completed: boolean }) =>
+      todosApi.updateTodo(id, { completed }),
+    onMutate: async ({ id, completed }) => {
+      // Optimistic update — task moves between sections immediately
+      await queryClient.cancelQueries({ queryKey: ['todos'] });
+      const previous = queryClient.getQueryData(['todos']);
+      queryClient.setQueryData(['todos'], (old: Todo[]) =>
+        old.map((todo) =>
+          todo.id === id ? { ...todo, completed } : todo
+        )
+      );
+      return { previous };
+    },
+    onError: (err, variables, context) => {
+      queryClient.setQueryData(['todos'], context?.previous);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['todos'] });
+    },
+  });
+}
 ```
 
-### 6.4 CSS Modules Usage
+### 6.5 CSS Modules Usage
 
 **Folder structure convention:** Each component lives in its own folder with:
 - `ComponentName.tsx` — Component implementation
@@ -525,6 +735,12 @@ export function TodoItem({ todo, onToggle, onDelete }: TodoItemProps) {
 import { TodoItem } from './components/TodoItem/TodoItem';
 import { TodoList } from './components/TodoList/TodoList';
 import { TodoInput } from './components/TodoInput/TodoInput';
+import { TaskSection } from './components/TaskSection/TaskSection';
+import { SectionHeader } from './components/SectionHeader/SectionHeader';
+import { EmptyState } from './components/EmptyState/EmptyState';
+import { LoadingState } from './components/LoadingState/LoadingState';
+import { ErrorState } from './components/ErrorState/ErrorState';
+import { ThemeToggle } from './components/ThemeToggle/ThemeToggle';
 import { Button } from './components/ui/Button/Button';
 import { Input } from './components/ui/Input/Input';
 import { Checkbox } from './components/ui/Checkbox/Checkbox';
@@ -536,15 +752,22 @@ import { Spinner } from './components/ui/Spinner/Spinner';
 ```css
 /* frontend/src/styles/variables.css */
 :root {
-  /* Colors */
-  --color-primary: #3b82f6;
-  --color-primary-hover: #2563eb;
-  --color-text: #1f2937;
-  --color-text-muted: #9ca3af;
-  --color-border: #e5e7eb;
-  --color-background: #ffffff;
-  --color-danger: #ef4444;
-  --color-danger-bg: #fee2e2;
+  /* Colors - Accessibility-Compliant Palette (WCAG 2.1 AA) */
+  /* Primary Colors */
+  --color-background: #FFFFFF;
+  --color-surface: #FAFAFA;
+  --color-text: #333333;
+  --color-text-secondary: #666666;
+  --color-text-muted: #767676;
+  --color-border: #949494;
+  
+  /* Accent Colors */
+  --color-primary: #4A90D9;        /* Focus Blue */
+  --color-primary-hover: #3A7BC8;
+  --color-success: #5CB85C;        /* Checkbox checked */
+  --color-danger: #D9534F;         /* Delete hover */
+  --color-danger-bg: #FDEAEA;
+  --color-warning: #F0AD4E;        /* Error state icon */
 
   /* Spacing */
   --spacing-xs: 0.25rem;
@@ -560,8 +783,48 @@ import { Spinner } from './components/ui/Spinner/Spinner';
   --font-size-lg: 1.125rem;
 
   /* Layout */
-  --max-width: 640px;
+  --max-width: 600px;              /* Per UX spec */
   --border-radius: 6px;
+  
+  /* Touch Targets (Accessibility) */
+  --touch-target-min: 44px;        /* WCAG 2.1 AA minimum */
+  --input-height: 48px;            /* Per wireframe spec */
+  
+  /* Animation Timings */
+  --animation-appear: 200ms;
+  --animation-complete: 150ms;
+  --animation-delete: 200ms;
+  --animation-section: 200ms;
+  --animation-easing: ease-in-out;
+  --animation-easing-out: ease-out;
+}
+
+/* Dark Mode Colors (via data-theme attribute) */
+[data-theme="dark"] {
+  --color-background: #1A1A1A;
+  --color-surface: #242424;
+  --color-text: #E8E8E8;
+  --color-text-secondary: #A0A0A0;
+  --color-text-muted: #8A8A8A;
+  --color-border: #4A4A4A;
+  
+  /* Accent Colors - Adjusted for dark backgrounds */
+  --color-primary: #5BA0E9;        /* Focus Blue (lighter) */
+  --color-primary-hover: #6BB0F9;
+  --color-success: #6DC86C;        /* Checkbox checked */
+  --color-danger: #E9635F;         /* Delete hover */
+  --color-danger-bg: #3A2020;
+  --color-warning: #FFBD5E;        /* Error state icon */
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --animation-appear: 0ms;
+    --animation-complete: 0ms;
+    --animation-delete: 0ms;
+    --animation-section: 0ms;
+  }
 }
 ```
 
@@ -613,7 +876,169 @@ The architecture supports adding authentication without major refactoring:
 
 ---
 
-## 8. Deployment Architecture
+## 8. UX Implementation Requirements
+
+This section captures specific UX requirements from the UX → Architecture Handoff that must be implemented.
+
+### 8.1 Accessibility Requirements (WCAG 2.1 AA)
+
+| Requirement | Implementation |
+|-------------|----------------|
+| **Color Contrast** | 4.5:1 minimum ratio for all text (validated palette in CSS variables) |
+| **Touch Targets** | 44x44px minimum for all interactive elements |
+| **Input Height** | 48px minimum for TaskInput field |
+| **Keyboard Navigation** | Full keyboard support: Tab, Enter, Space, Delete, Escape |
+| **Screen Readers** | Semantic HTML elements, ARIA labels where needed |
+| **Focus Management** | Visible focus rings (2px outline), logical tab order |
+| **Reduced Motion** | Respect `prefers-reduced-motion: reduce` media query |
+
+**Keyboard Interactions:**
+
+| Key | Context | Action |
+|-----|---------|--------|
+| `Tab` | Global | Move focus to next interactive element |
+| `Shift+Tab` | Global | Move focus to previous interactive element |
+| `Enter` | TaskInput | Submit new task |
+| `Enter` | TaskItem checkbox | Toggle completion |
+| `Space` | TaskItem checkbox | Toggle completion |
+| `Delete` / `Backspace` | TaskItem (focused) | Delete task (with confirmation) |
+| `Escape` | TaskInput | Clear input field |
+
+**ARIA Implementation:**
+
+```tsx
+// TaskInput — descriptive label
+<input
+  type="text"
+  aria-label="New task"
+  placeholder="What needs to be done?"
+/>
+
+// TaskItem — checkbox with label
+<div role="listitem" aria-label={`Task: ${todo.text}`}>
+  <input
+    type="checkbox"
+    aria-label={`Mark "${todo.text}" as ${todo.completed ? 'incomplete' : 'complete'}`}
+  />
+  <button aria-label={`Delete task: ${todo.text}`}>Delete</button>
+</div>
+
+// TaskSection — labeled region
+<section aria-labelledby="active-tasks-heading">
+  <h2 id="active-tasks-heading">Tasks</h2>
+  <ul role="list">{/* tasks */}</ul>
+</section>
+
+// Live region for announcements
+<div aria-live="polite" aria-atomic="true" className="sr-only">
+  {/* Announce task added, completed, deleted */}
+</div>
+```
+
+### 8.2 Animation Specifications
+
+| Animation | Duration | Easing | Trigger |
+|-----------|----------|--------|---------|
+| Task appear | 200ms | ease-out | New task added |
+| Task complete | 150ms + 200ms | ease-in-out | Checkbox toggled (fade + section move) |
+| Task delete | 200ms | ease-in-out | Delete clicked |
+| Section transition | 200ms | ease-in-out | Task moves between Active/Completed |
+
+**CSS Animation Implementation:**
+
+```css
+/* Task appear animation */
+.taskEnter {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+.taskEnterActive {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity var(--animation-appear) var(--animation-easing-out),
+              transform var(--animation-appear) var(--animation-easing-out);
+}
+
+/* Task delete animation */
+.taskExit {
+  opacity: 1;
+  transform: translateX(0);
+}
+.taskExitActive {
+  opacity: 0;
+  transform: translateX(20px);
+  transition: opacity var(--animation-delete) var(--animation-easing),
+              transform var(--animation-delete) var(--animation-easing);
+}
+
+/* Task completion animation */
+.completing {
+  transition: opacity var(--animation-complete) var(--animation-easing);
+}
+
+/* Section transition */
+.sectionMove {
+  transition: transform var(--animation-section) var(--animation-easing);
+}
+```
+
+**Animation Library Decision:** Use CSS transitions (no external library). CSS transitions are:
+- Zero runtime overhead
+- Automatically respect `prefers-reduced-motion` via CSS variables
+- Sufficient for the simple animations required
+- Native browser support
+
+### 8.3 Responsive Design
+
+| Breakpoint | Width | Container | Padding |
+|------------|-------|-----------|---------|
+| Mobile | < 768px | 100% width | 16px horizontal |
+| Desktop | ≥ 768px | 600px max-width, centered | - |
+
+**CSS Implementation:**
+
+```css
+/* frontend/src/styles/global.css */
+.container {
+  width: 100%;
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 var(--spacing-md);
+}
+
+@media (min-width: 768px) {
+  .container {
+    padding: 0;
+  }
+}
+```
+
+### 8.4 Component State Specifications
+
+| Component | States | Key Behaviors |
+|-----------|--------|---------------|
+| **TaskInput** | default, focused, typing, error | Auto-focus on page load, Enter to submit, clear after submit |
+| **TaskItem** | incomplete, hover, focused, completed | Checkbox toggle, delete button appears on hover (always visible on mobile) |
+| **TaskSection** | active, completed | Active always visible; Completed hidden when empty |
+| **SectionHeader** | visible | "Tasks" always shown; "Completed" only when section has items |
+| **EmptyState** | global, section-specific | Global: "No tasks yet!" when no tasks exist; Section: shown in Active when all tasks completed |
+| **LoadingState** | loading | Show spinner only if API response > 200ms (delayed loading indicator) |
+| **ErrorState** | error | Display error message with "Try Again" button |
+| **ThemeToggle** | light, dark | Sun/moon icon toggle; 44px touch target; persists to localStorage; detects system preference |
+
+### 8.5 Performance Targets
+
+| Metric | Target | Implementation Strategy |
+|--------|--------|-------------------------|
+| Initial page load | < 2 seconds | Vite code splitting, gzip compression |
+| API response | < 200ms | SQLite local reads, indexed queries |
+| UI feedback | Immediate | Optimistic updates via React Query |
+| Task capture (end-to-end) | < 10 seconds | Auto-focus input, single action submit |
+| Loading indicator delay | 200ms | Only show LoadingState after 200ms |
+
+---
+
+## 9. Deployment Architecture
 
 ### 8.1 Development Environment
 
@@ -678,9 +1103,9 @@ VITE_API_URL=http://localhost:3000/api
 
 ---
 
-## 9. Development Workflow
+## 10. Development Workflow
 
-### 9.1 Scripts
+### 10.1 Scripts
 
 ```json
 // Root package.json
@@ -701,7 +1126,7 @@ VITE_API_URL=http://localhost:3000/api
 }
 ```
 
-### 9.2 Database Migrations
+### 10.2 Database Migrations
 
 ```bash
 # Generate migration from schema changes
@@ -716,9 +1141,9 @@ npm run db:studio
 
 ---
 
-## 10. Performance Considerations
+## 11. Performance Considerations
 
-### 10.1 Frontend Performance
+### 11.1 Frontend Performance
 
 | Technique | Implementation |
 |-----------|----------------|
@@ -727,7 +1152,7 @@ npm run db:studio
 | Scoped CSS | CSS Modules with build-time compilation |
 | Efficient renders | React 18 automatic batching |
 
-### 10.2 Backend Performance
+### 11.2 Backend Performance
 
 | Technique | Implementation |
 |-----------|----------------|
@@ -735,7 +1160,7 @@ npm run db:studio
 | Indexed queries | Index on `created_at` for sort |
 | Minimal middleware | Only essential Express middleware |
 
-### 10.3 Target Metrics (from PRD)
+### 11.3 Target Metrics (from PRD)
 
 | Metric | Target | Strategy |
 |--------|--------|----------|
@@ -745,9 +1170,9 @@ npm run db:studio
 
 ---
 
-## 11. Testing Strategy
+## 12. Testing Strategy
 
-### 11.1 Testing Pyramid
+### 12.1 Testing Pyramid
 
 ```
         ╱╲
@@ -763,7 +1188,7 @@ npm run db:studio
                     • React components
 ```
 
-### 11.2 Testing Tools
+### 12.2 Testing Tools
 
 | Layer | Tool | Coverage Target |
 |-------|------|-----------------|
@@ -771,8 +1196,9 @@ npm run db:studio
 | Unit (Backend) | Vitest | Validation, utilities |
 | Integration | Vitest + Supertest | API endpoints |
 | E2E | Playwright | Critical user paths |
+| Accessibility | axe-core + Playwright | WCAG 2.1 AA compliance |
 
-### 11.3 Test File Conventions
+### 12.3 Test File Conventions
 
 ```
 frontend/src/components/__tests__/TodoItem.test.tsx
@@ -782,9 +1208,9 @@ e2e/tests/todo-crud.spec.ts
 
 ---
 
-## 12. Monitoring & Observability (Production)
+## 13. Monitoring & Observability (Production)
 
-### 12.1 Logging
+### 13.1 Logging
 
 ```typescript
 // backend/src/middleware/logger.ts
@@ -798,7 +1224,7 @@ export const logger = pino({
 });
 ```
 
-### 12.2 Health Check Endpoint
+### 13.2 Health Check Endpoint
 
 ```typescript
 // GET /api/health
@@ -815,9 +1241,9 @@ app.get('/api/health', async (req, res) => {
 
 ---
 
-## 13. Extensibility Considerations
+## 14. Extensibility Considerations
 
-### 13.1 Future Authentication
+### 14.1 Future Authentication
 
 The architecture supports adding authentication with minimal changes:
 
@@ -827,7 +1253,7 @@ The architecture supports adding authentication with minimal changes:
 4. Add auth context provider in React
 5. Update React Query hooks to pass auth headers
 
-### 13.2 Future Database Migration (PostgreSQL)
+### 14.2 Future Database Migration (PostgreSQL)
 
 Drizzle ORM supports PostgreSQL with minimal schema changes:
 
@@ -835,7 +1261,7 @@ Drizzle ORM supports PostgreSQL with minimal schema changes:
 2. Migrate SQLite data to PostgreSQL
 3. Update connection string in environment variables
 
-### 13.3 API Versioning
+### 14.3 API Versioning
 
 If needed, version the API by updating routes:
 
@@ -850,7 +1276,7 @@ app.use('/api/v2/todos', todosV2Router);
 
 ---
 
-## 14. Technical Risks & Mitigations
+## 15. Technical Risks & Mitigations
 
 | Risk | Impact | Likelihood | Mitigation |
 |------|--------|------------|------------|
@@ -861,7 +1287,7 @@ app.use('/api/v2/todos', todosV2Router);
 
 ---
 
-## 15. Decision Log
+## 16. Decision Log
 
 | Date | Decision | Rationale | Alternatives Rejected |
 |------|----------|-----------|----------------------|
@@ -870,10 +1296,15 @@ app.use('/api/v2/todos', todosV2Router);
 | 2026-03-04 | React Query over Redux | Server state focus, built-in caching | Redux (overkill), Zustand (less caching) |
 | 2026-03-04 | CSS Modules over Tailwind | Native CSS syntax, scoped styles, zero runtime | Tailwind (utility learning curve), Styled Components (runtime cost) |
 | 2026-03-04 | Express over Fastify | Simpler, universal understanding | Fastify (marginal perf gains not needed) |
+| 2026-03-05 | Two-section task list (Active/Completed) | Better visual hierarchy, clearer task states, reduces cognitive load per PRD v1.1 | Single flat list (less organized), Tabs (extra interaction) |
+| 2026-03-05 | CSS transitions for animations | Zero runtime overhead, native reduced-motion support, sufficient for simple animations | React Spring (overkill), Framer Motion (bundle size), GSAP (complexity) |
+| 2026-03-05 | WCAG 2.1 AA accessibility target | Required by UX handoff, ensures broad usability | WCAG AAA (too restrictive for MVP) |
+| 2026-03-05 | axe-core for accessibility testing | Industry standard, Playwright integration, automated CI checks | Manual testing only (error-prone) |
+| 2026-03-05 | CSS custom properties + data-theme for dark mode | Zero runtime overhead, flash prevention via inline script, respects system preference, persists user choice | CSS-in-JS themes (runtime cost), separate stylesheets (duplication), React context only (flash on load) |
 
 ---
 
-## 16. Acceptance Criteria (Architecture)
+## 17. Acceptance Criteria (Architecture)
 
 | Criterion | Verification |
 |-----------|--------------|
@@ -884,6 +1315,14 @@ app.use('/api/v2/todos', todosV2Router);
 | Responsive on mobile/desktop | Visual testing at breakpoints |
 | Build completes < 30 seconds | CI pipeline timing |
 | Cold start < 5 seconds | Production deployment verification |
+| Accessibility (WCAG 2.1 AA) | axe-core tests pass, keyboard navigation works |
+| Touch targets ≥ 44px | Visual inspection, automated checks |
+| Color contrast ≥ 4.5:1 | axe-core automated verification |
+| Animations respect reduced-motion | Manual test with `prefers-reduced-motion: reduce` |
+| Dark mode toggle works | Click toggle switches theme, verified in both modes |
+| Theme persists across sessions | Reload page, verify theme matches previous selection |
+| System preference detection | New user with dark OS preference sees dark mode |
+| No theme flash on load | Page loads without visible flash of wrong theme |
 
 ---
 
@@ -893,3 +1332,6 @@ app.use('/api/v2/todos', todosV2Router);
 |---------|------|--------|---------|
 | 1.0-draft | March 4, 2026 | Winston (Architect) | Initial architecture based on PRD v1.0 |
 | 1.0 | March 4, 2026 | Winston (Architect) | Approved by Rob |
+| 1.1 | March 5, 2026 | Winston (Architect) | Updated for PRD v1.1: Added TaskSection, SectionHeader, EmptyState, LoadingState, ErrorState components; Updated component hierarchy for two-section design (Active/Completed); Added useTodoSections and useToggleTodo hooks |
+| 1.2 | March 5, 2026 | Winston (Architect) | Integrated UX handoff requirements: Added Section 8 (UX Implementation Requirements) covering accessibility (WCAG 2.1 AA), animation specs, responsive design, keyboard navigation; Updated CSS variables with accessibility-compliant color palette; Added axe-core to testing tools; Expanded acceptance criteria for accessibility validation |
+| 1.3 | March 5, 2026 | Winston (Architect) | Added dark mode support per wireframes v1.2: ThemeToggle component in hierarchy and project structure; useTheme hook with localStorage persistence and system preference detection; Dark mode CSS variables with data-theme attribute; Flash prevention inline script for index.html; Updated decision log and acceptance criteria |
