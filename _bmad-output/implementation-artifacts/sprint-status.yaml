@@ -47,28 +47,28 @@ development_status:
   epic-1-retrospective: optional
 
   # Epic 2: Core Task Capture
-  epic-2: in-progress
+  epic-2: done
   2-1-implement-todo-api-endpoints-get-post: done
   2-2-implement-zod-validation-schemas: done
   2-3-implement-taskinput-component: done
-  2-4-implement-todolist-usetodos-hook: backlog
-  2-5-implement-optimistic-add-rollback: backlog
+  2-4-implement-todolist-usetodos-hook: done
+  2-5-implement-optimistic-add-rollback: done
   epic-2-retrospective: optional
 
   # Epic 3: Task Completion & Organization
-  epic-3: backlog
-  3-1-implement-patch-api-todos-id-endpoint: backlog
-  3-2-implement-two-section-layout-active-completed: backlog
-  3-3-implement-taskitem-component: backlog
-  3-4-implement-toggle-completion-optimistic-update: backlog
-  3-5-implement-task-animations: backlog
+  epic-3: done
+  3-1-implement-patch-api-todos-id-endpoint: done
+  3-2-implement-two-section-layout-active-completed: done
+  3-3-implement-taskitem-component: done
+  3-4-implement-toggle-completion-optimistic-update: done
+  3-5-implement-task-animations: done
   epic-3-retrospective: optional
 
   # Epic 4: Task Deletion
-  epic-4: backlog
-  4-1-implement-delete-api-todos-id-endpoint: backlog
-  4-2-implement-delete-button-taskitem: backlog
-  4-3-implement-delete-animation: backlog
+  epic-4: done
+  4-1-implement-delete-api-todos-id-endpoint: done
+  4-2-implement-delete-button-taskitem: done
+  4-3-implement-delete-animation: done
   epic-4-retrospective: optional
 
   # Epic 5: UI States & Feedback

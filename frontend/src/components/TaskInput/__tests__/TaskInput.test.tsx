@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { TaskInput } from '../TaskInput';
 
@@ -10,6 +10,9 @@ import { TaskInput } from '../TaskInput';
  */
 
 describe('TaskInput Component', () => {
+  // Setup userEvent with act() wrapper for proper React state handling
+  const user = userEvent.setup();
+
   describe('rendering', () => {
     it('renders input field', () => {
       render(<TaskInput onSubmit={vi.fn()} />);
@@ -38,9 +41,13 @@ describe('TaskInput Component', () => {
       render(<TaskInput onSubmit={onSubmit} />);
 
       const input = screen.getByRole('textbox');
-      await userEvent.type(input, 'Buy milk{Enter}');
+      await act(async () => {
+        await user.type(input, 'Buy milk{Enter}');
+      });
 
-      expect(onSubmit).toHaveBeenCalledWith('Buy milk');
+      await waitFor(() => {
+        expect(onSubmit).toHaveBeenCalledWith('Buy milk');
+      });
     });
 
     it('calls onSubmit when Add button clicked', async () => {
@@ -48,12 +55,18 @@ describe('TaskInput Component', () => {
       render(<TaskInput onSubmit={onSubmit} />);
 
       const input = screen.getByRole('textbox');
-      await userEvent.type(input, 'Buy milk');
+      await act(async () => {
+        await user.type(input, 'Buy milk');
+      });
 
       const button = screen.getByRole('button', { name: /add/i });
-      await userEvent.click(button);
+      await act(async () => {
+        await user.click(button);
+      });
 
-      expect(onSubmit).toHaveBeenCalledWith('Buy milk');
+      await waitFor(() => {
+        expect(onSubmit).toHaveBeenCalledWith('Buy milk');
+      });
     });
 
     it('clears input after successful submission', async () => {
@@ -61,7 +74,9 @@ describe('TaskInput Component', () => {
       render(<TaskInput onSubmit={onSubmit} />);
 
       const input = screen.getByRole('textbox');
-      await userEvent.type(input, 'Buy milk{Enter}');
+      await act(async () => {
+        await user.type(input, 'Buy milk{Enter}');
+      });
 
       await waitFor(() => {
         expect(input).toHaveValue('');
@@ -73,9 +88,13 @@ describe('TaskInput Component', () => {
       render(<TaskInput onSubmit={onSubmit} />);
 
       const input = screen.getByRole('textbox');
-      await userEvent.type(input, '  Buy milk  {Enter}');
+      await act(async () => {
+        await user.type(input, '  Buy milk  {Enter}');
+      });
 
-      expect(onSubmit).toHaveBeenCalledWith('Buy milk');
+      await waitFor(() => {
+        expect(onSubmit).toHaveBeenCalledWith('Buy milk');
+      });
     });
 
     it('retains focus after submission', async () => {
@@ -83,7 +102,9 @@ describe('TaskInput Component', () => {
       render(<TaskInput onSubmit={onSubmit} />);
 
       const input = screen.getByRole('textbox');
-      await userEvent.type(input, 'Buy milk{Enter}');
+      await act(async () => {
+        await user.type(input, 'Buy milk{Enter}');
+      });
 
       await waitFor(() => {
         expect(input).toHaveFocus();
@@ -97,7 +118,9 @@ describe('TaskInput Component', () => {
       render(<TaskInput onSubmit={onSubmit} />);
 
       const input = screen.getByRole('textbox');
-      await userEvent.type(input, '{Enter}');
+      await act(async () => {
+        await user.type(input, '{Enter}');
+      });
 
       expect(onSubmit).not.toHaveBeenCalled();
     });
@@ -107,7 +130,9 @@ describe('TaskInput Component', () => {
       render(<TaskInput onSubmit={onSubmit} />);
 
       const input = screen.getByRole('textbox');
-      await userEvent.type(input, '   {Enter}');
+      await act(async () => {
+        await user.type(input, '   {Enter}');
+      });
 
       expect(onSubmit).not.toHaveBeenCalled();
     });
@@ -116,18 +141,26 @@ describe('TaskInput Component', () => {
       render(<TaskInput onSubmit={vi.fn()} />);
 
       const input = screen.getByRole('textbox');
-      await userEvent.type(input, '{Enter}');
+      await act(async () => {
+        await user.type(input, '{Enter}');
+      });
 
-      expect(screen.getByRole('alert')).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByRole('alert')).toBeInTheDocument();
+      });
     });
 
     it('sets aria-invalid when validation fails', async () => {
       render(<TaskInput onSubmit={vi.fn()} />);
 
       const input = screen.getByRole('textbox');
-      await userEvent.type(input, '{Enter}');
+      await act(async () => {
+        await user.type(input, '{Enter}');
+      });
 
-      expect(input).toHaveAttribute('aria-invalid', 'true');
+      await waitFor(() => {
+        expect(input).toHaveAttribute('aria-invalid', 'true');
+      });
     });
   });
 

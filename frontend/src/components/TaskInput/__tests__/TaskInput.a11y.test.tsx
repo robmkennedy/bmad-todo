@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axe, toHaveNoViolations } from 'jest-axe';
 import { TaskInput } from '../TaskInput';
@@ -13,6 +13,9 @@ expect.extend(toHaveNoViolations);
  */
 
 describe('TaskInput Accessibility', () => {
+  // Setup userEvent with act() wrapper for proper React state handling
+  const user = userEvent.setup();
+
   it('has no accessibility violations', async () => {
     const { container } = render(<TaskInput onSubmit={vi.fn()} />);
 
@@ -61,9 +64,13 @@ describe('TaskInput Accessibility', () => {
     const input = screen.getByRole('textbox');
 
     // Type and submit with keyboard only
-    await userEvent.type(input, 'Keyboard task{Enter}');
+    await act(async () => {
+      await user.type(input, 'Keyboard task{Enter}');
+    });
 
-    expect(onSubmit).toHaveBeenCalledWith('Keyboard task');
+    await waitFor(() => {
+      expect(onSubmit).toHaveBeenCalledWith('Keyboard task');
+    });
   });
 
   it('announces errors to screen readers', async () => {
@@ -72,10 +79,14 @@ describe('TaskInput Accessibility', () => {
     const input = screen.getByRole('textbox');
 
     // Try to submit empty - should show error
-    await userEvent.type(input, '{Enter}');
+    await act(async () => {
+      await user.type(input, '{Enter}');
+    });
 
     // Error should be announced via role="alert"
-    expect(screen.getByRole('alert')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toBeInTheDocument();
+    });
   });
 });
 

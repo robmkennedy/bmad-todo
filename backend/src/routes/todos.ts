@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { db, schema } from '../db/index.js';
 import { z, ZodError } from 'zod';
-import { desc } from 'drizzle-orm';
+import { desc, eq } from 'drizzle-orm';
 
 /**
  * Validation schema for creating a todo
@@ -22,6 +22,27 @@ const createTodoSchema = z.object({
     .trim()
     .min(1, 'Text cannot be empty')
     .max(500, 'Text cannot exceed 500 characters'),
+});
+
+/**
+ * Validation schema for updating a todo
+ * All fields are optional - only provided fields will be updated
+ */
+const updateTodoSchema = z.object({
+  text: z
+    .string()
+    .trim()
+    .min(1, 'Text cannot be empty')
+    .max(500, 'Text cannot exceed 500 characters')
+    .optional(),
+  completed: z.boolean().optional(),
+});
+
+/**
+ * Validation schema for todo ID parameter
+ */
+const todoIdSchema = z.object({
+  id: z.string().uuid('Invalid todo ID'),
 });
 
 const router = Router();
@@ -94,6 +115,136 @@ router.post('/', async (req, res) => {
       error: {
         code: 'INTERNAL_ERROR',
         message: 'Failed to create todo',
+      },
+    });
+  }
+});
+
+/**
+ * PATCH /api/todos/:id
+ *
+ * Updates an existing todo (partial update)
+ * Body: { text?: string, completed?: boolean }
+ * Returns: 200 with updated todo, 404 if not found
+ */
+router.patch('/:id', async (req, res) => {
+  try {
+    // Validate path parameter
+    const { id } = todoIdSchema.parse(req.params);
+
+    // Validate request body
+    const updates = updateTodoSchema.parse(req.body);
+
+    // Check if there are any updates to apply
+    if (Object.keys(updates).length === 0) {
+      // No updates provided - fetch and return current todo
+      const [existingTodo] = await db
+        .select()
+        .from(schema.todos)
+        .where(eq(schema.todos.id, id));
+
+      if (!existingTodo) {
+        res.status(404).json({
+          error: {
+            code: 'NOT_FOUND',
+            message: 'Todo not found',
+          },
+        });
+        return;
+      }
+
+      res.json(existingTodo);
+      return;
+    }
+
+    // Update and return in single operation using returning()
+    const [updatedTodo] = await db
+      .update(schema.todos)
+      .set(updates)
+      .where(eq(schema.todos.id, id))
+      .returning();
+
+    // If no rows returned, todo doesn't exist
+    if (!updatedTodo) {
+      res.status(404).json({
+        error: {
+          code: 'NOT_FOUND',
+          message: 'Todo not found',
+        },
+      });
+      return;
+    }
+
+
+    res.json(updatedTodo);
+  } catch (error) {
+    if (error instanceof ZodError) {
+      res.status(400).json({
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Invalid input',
+          details: error.flatten().fieldErrors,
+        },
+      });
+      return;
+    }
+
+    console.error('Error updating todo:', error);
+    res.status(500).json({
+      error: {
+        code: 'INTERNAL_ERROR',
+        message: 'Failed to update todo',
+      },
+    });
+  }
+});
+
+/**
+ * DELETE /api/todos/:id
+ *
+ * Deletes an existing todo
+ * Returns: 204 No Content on success, 404 if not found
+ */
+router.delete('/:id', async (req, res) => {
+  try {
+    // Validate path parameter
+    const { id } = todoIdSchema.parse(req.params);
+
+    // Delete and check if anything was deleted using returning()
+    const [deletedTodo] = await db
+      .delete(schema.todos)
+      .where(eq(schema.todos.id, id))
+      .returning();
+
+    // If no rows returned, todo doesn't exist
+    if (!deletedTodo) {
+      res.status(404).json({
+        error: {
+          code: 'NOT_FOUND',
+          message: 'Todo not found',
+        },
+      });
+      return;
+    }
+
+    res.status(204).send();
+  } catch (error) {
+    if (error instanceof ZodError) {
+      res.status(400).json({
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Invalid input',
+          details: error.flatten().fieldErrors,
+        },
+      });
+      return;
+    }
+
+    console.error('Error deleting todo:', error);
+    res.status(500).json({
+      error: {
+        code: 'INTERNAL_ERROR',
+        message: 'Failed to delete todo',
       },
     });
   }

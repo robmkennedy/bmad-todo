@@ -1,0 +1,135 @@
+.todoSections {
+  margin-top: var(--spacing-lg);
+}
+
+.section {
+  margin-bottom: var(--spacing-lg);
+}
+
+.section:last-child {
+  margin-bottom: 0;
+}
+
+.sectionHeading {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.collapseButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: var(--spacing-xs);
+  border-radius: var(--radius-sm, 4px);
+}
+
+.collapseButton:hover {
+  background-color: var(--color-hover, rgba(0, 0, 0, 0.05));
+}
+
+.collapseButton:focus {
+  outline: 2px solid var(--color-primary, #3b82f6);
+  outline-offset: 2px;
+}
+
+.sectionToggle {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: var(--spacing-xs) 0;
+  width: 100%;
+  text-align: left;
+}
+
+.sectionToggle:hover .sectionHeading {
+  color: var(--color-text-primary);
+}
+
+.sectionToggle:focus {
+  outline: 2px solid var(--color-primary, #3b82f6);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm, 4px);
+}
+
+.collapseIcon {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  width: 1rem;
+  text-align: center;
+  transition: transform 0.2s ease;
+}
+
+.sectionEmpty {
+  color: var(--color-text-secondary);
+  font-style: italic;
+  padding: var(--spacing-md) 0;
+  margin: 0;
+}
+
+.todoList {
+  list-style: none;
+  padding: 0;
+  margin: var(--spacing-sm) 0 0 0;
+}
+
+.loadingMessage {
+  margin-top: var(--spacing-lg);
+  color: var(--color-text-secondary);
+}
+
+.errorMessage {
+  margin-top: var(--spacing-lg);
+  color: var(--color-error, #dc2626);
+}
+
+.errorMessage p {
+  margin: 0 0 var(--spacing-sm) 0;
+}
+
+.retryButton {
+  padding: var(--spacing-xs) var(--spacing-md);
+  background-color: var(--color-primary, #3b82f6);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm, 4px);
+  cursor: pointer;
+  font-size: inherit;
+}
+
+.retryButton:hover {
+  opacity: 0.9;
+}
+
+.retryButton:focus {
+  outline: 2px solid var(--color-primary, #3b82f6);
+  outline-offset: 2px;
+}
+
+.emptyMessage {
+  margin-top: var(--spacing-lg);
+  color: var(--color-text-secondary);
+}
+
+/* Respect user's motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .collapseIcon {
+    transition: none;
+  }
+}
+
